@@ -1,23 +1,24 @@
-# Use official Python image as base
-FROM python:3.9-slim
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Set environment variables for non-interactive apt installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set working directory
+# Set the working directory to /app
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install any needed dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy project files
-COPY . .
+# Install gunicorn (WSGI server for production)
+RUN pip install gunicorn
 
-# Expose port
+# Expose port 5000 for the app to run on
 EXPOSE 5000
 
-# Run the application
-CMD ["python", "app.py"]
+# Use gunicorn to run the Flask app with 4 worker threads
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
